@@ -1,7 +1,9 @@
 package com.example.aviatickets.adapter
 
+import OfferDiffCallback
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.example.aviatickets.R
 import com.example.aviatickets.databinding.ItemOfferBinding
@@ -12,24 +14,37 @@ class OfferListAdapter : RecyclerView.Adapter<OfferListAdapter.ViewHolder>() {
     private val items: ArrayList<Offer> = arrayListOf()
 
     fun setItems(offerList: List<Offer>) {
-        items.clear()
-        items.addAll(offerList)
-        notifyDataSetChanged()
+        val diffCallback = OfferDiffCallback(this.items, offerList)
+        val diffResult = DiffUtil.calculateDiff(diffCallback)
 
-        /**
-         * think about recycler view optimization using diff.util
-         */
+        this.items.clear()
+        this.items.addAll(offerList)
+        diffResult.dispatchUpdatesTo(this)
+    }
+
+    fun sortByPrice() {
+        val sortedList = items.sortedBy { it.price }
+        setItems(sortedList)
+    }
+
+    fun sortByDuration() {
+        val sortedList = items.sortedBy { it.flight.duration }
+        setItems(sortedList)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        return ViewHolder(
-            ItemOfferBinding.inflate(
-                LayoutInflater.from(parent.context),
-                parent,
-                false
-            )
-        )
+        val viewHolder = ViewHolder(ItemOfferBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+        viewHolder.itemView.setOnClickListener {
+            // Handle click event
+            val position = viewHolder.adapterPosition
+            if (position != RecyclerView.NO_POSITION) {
+                val offer = items[position]
+                // Do something with the offer
+            }
+        }
+        return viewHolder
     }
+
 
     override fun getItemCount(): Int {
         return items.size
